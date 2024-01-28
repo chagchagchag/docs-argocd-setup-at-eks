@@ -4,7 +4,7 @@ const withNextra = require('nextra')({
 })
 
 const isProduction = process.env.NODE_ENV === "production";
-const assetPrefix = isProduction ? "/my-nextra-template" : "";
+const assetPrefix = isProduction ? "/docs-argocd-setup-at-eks" : "";
 // const assetPrefix = "/docs-argocd-setup-at-eks";
 
 const nextConfig = {
