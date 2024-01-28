@@ -1,0 +1,8 @@
+{
+    "1.Create-An-EKS-Cluster-by-eksctl": "1. eksctl 을 사용해 EKS Cluster 생성",
+    "2.Craete-An-EKS-Nodegroup": "2. eksctl 을 사용해 EKS Nodegroup 생성",
+    "3.Delete-Managed-Nodegroup": "3. Managed Nodegroup 삭제",
+    "4.Setup-EKS-Extensions": "4. EKS 추가기능 (VPC CNI, CSI 드라이버, kube-proxy, CoreDNS) 설치",
+    "5.Find-oidc-and-Create-Service-Account": "5. oidc 조회 및 클러스터 service account 생성",
+    "6.Create-An-AwsLoadBalancer-Controller": "6. helm 을 이용해 aws-load-balancer-controller 생성"
+}

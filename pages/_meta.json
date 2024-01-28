@@ -1,4 +1,8 @@
 {
+  "0-setup-access-tools": "접근 환경 구성",
+  "1-create-an-eks": "EKS 생성 & 셋업",
+  "2-setup-argocd": "EKS 내에 ArgoCD 구축",
+  "3-etc": "ETC",
   "index": "Introduction",
   "another": "Another Page",
   "advanced": "Advanced (A Folder)",
