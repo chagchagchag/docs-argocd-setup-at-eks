@@ -1,7 +1,7 @@
 {
-    "1.Create-An-AdministratorAccess-IAM": "1. Administrator 권한의 IAM User, Access Key, Access Key Secret 생성",
-    "2.Setup-an-AWS-Cloud9": "2.AWS Cloud 9 셋업",
-    "3.Setup-EKS-k8s-access-tools": "3.EKS, k8s 접근 도구 셋업",
-    "4.Fix-Cloud9-AccessKey-AccessKeySecret": "4.Cloud9 의 Access Key, Access Key Secret 새로고침문제 해결방법",
-    "5.Create-Subnet-and-SecurityGroup-on-Ingress": "5.ArgoCD ALB 용도의 Ingress 에 서브넷 지정, 보안 그룹 생성"
+    "1": "1. Administrator 권한의 IAM User, Access Key, Access Key Secret 생성",
+    "2": "2.AWS Cloud 9 셋업",
+    "3": "3.EKS, k8s 접근 도구 셋업",
+    "4": "4.Cloud9 의 Access Key, Access Key Secret 새로고침문제 해결방법",
+    "5": "5.ArgoCD ALB 용도의 Ingress 에 서브넷 지정, 보안 그룹 생성"
 }

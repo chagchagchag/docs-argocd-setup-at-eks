@@ -1,6 +1,6 @@
 {
-    "1.Create-ArgoCD-using-ArgoCD-github-yaml": "1. ArgoCD 공식 제공 yml 을 이용해 ArgoCD 설치",
-    "2.Enable-HTTP-Inbound-At-ArgoCD": "2. ArgoCD 구축 (2) ArgoCD 에 HTTP 허용",
-    "3.Connect-To-ArgoCD-80Port-via-Ingress-URL": "3. 80포트 허용된 ArgoCD 에 Ingress URL 을 통해 접속해보기",
-    "4.Modify-Default-Password-at-ArgoCD": "4. ArgoCD 의 Default Password 변경"
+    "1": "1. ArgoCD 공식 제공 yml 을 이용해 ArgoCD 설치",
+    "2": "2. ArgoCD 구축 (2) ArgoCD 에 HTTP 허용",
+    "3": "3. 80포트 허용된 ArgoCD 에 Ingress URL 을 통해 접속해보기",
+    "4": "4. ArgoCD 의 Default Password 변경"
 }
