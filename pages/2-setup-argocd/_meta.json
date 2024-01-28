@@ -1,6 +1,6 @@
 {
-    "1": "1. ArgoCD 공식 제공 yml 을 이용해 ArgoCD 설치",
-    "2": "2. ArgoCD 구축 (2) ArgoCD 에 HTTP 허용",
-    "3": "3. 80포트 허용된 ArgoCD 에 Ingress URL 을 통해 접속해보기",
-    "4": "4. ArgoCD 의 Default Password 변경"
+    "2.1": "1. ArgoCD 공식 제공 yml 을 이용해 ArgoCD 설치",
+    "2.2": "2. ArgoCD 구축 (2) ArgoCD 에 HTTP 허용",
+    "2.3": "3. 80포트 허용된 ArgoCD 에 Ingress URL 을 통해 접속해보기",
+    "2.4": "4. ArgoCD 의 Default Password 변경"
 }
