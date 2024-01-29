@@ -1,1 +1,390 @@
 ## 5. oidc 조회 및 클러스터 service account 생성
+
+AWS Loadbalancer Controller 의 공식 깃헙 블로그는 [kubernetes-sigs.github.io/aws-load-balancer-controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller) 이다.
+<br/>
+
+로드밸런서 컨트롤러를 설정하기 위해서 가장 먼저 확인해야 할 내용은 Open Id Connect 가 쿠버네티스와 잘 연결되어 사용되고 있는지이다.  
+<br/>
+
+쿠버네티스는 인그레스나 이런 것들을 배포를 하고 나면 Amazon 의 ALB 등을 제어를 해야 하는데, 이렇게 AWS 에 존재하는 ALB등을 제어하기 위해서 인증 방식의 다양한 방법 들 중 OAuth 방식의 Open Id Connect 를 지원해주고 있다.
+<br/>
+
+참고
+- [Open ID(OIDC) 의 개념과 동작원리](https://hudi.blog/open-id/)
+- [편의성을 높인 ID 인증관리 - OIDC(Open ID Connect) 가 주목받는 이유](https://www.samsungsds.com/kr/insights/oidc.html)
+
+<br/>
+
+
+### 환경변수 선언
+cluster_name , oidc 선언
+```bash filename="terminal" {3} copy
+$ export cluster_name=gitops-study-k8scluster
+
+## eks cluster 에 대한 oidc_id 를 조회한다.
+$ oidc_id=$(aws eks describe-cluster --name $cluster_name --query "cluster.identity.oidc.issuer" --output text | cut -d '/' -f 5)
+
+## 구한 eks cluster 에 대한 oidc 를 출력해본다. 
+$ echo $oidc_id
+8889A26B47C0F157228D712D894CA629
+```
+<br/>
+
+생성한 oidc_id 는 필요할 때마다 아래의 명령을 수행해도 되지만 복사해서 따로 보관해두면 편하다.
+```bash filename="terminal" {3} copy
+$ aws eks describe-cluster --name $cluster_name --query "cluster.identity.oidc.issuer" --output text | cut -d '/' -f 5
+```
+<br/>
+
+만약 출력된 결과가 없다면 oidc 가 없다는 것인데, 아래의 명령을 통해 OIDC 자격증명 공급자를 생성해야 한다. 
+```bash filename="terminal" {3} copy
+$ eksctl utils associate-iam-oidc-provider --cluster $cluster_name --approve
+2023-12-24 13:56:17 [ℹ]  will create IAM Open ID Connect provider for cluster "gitops-study-k8scluster" in "ap-northeast-2"
+2023-12-24 13:56:17 [✔]  created IAM Open ID Connect provider for cluster "gitops-study-k8scluster" in "ap-northeast-2"
+```
+<br/>
+
+내 경우에는 cluster 에 대한 iamserviceaccount 를 생성시에 오류가 났고, 위의 명령어를 그대로 수행하라는 출력이 나타났다. 그래서 위의 명령어를 수행한 후에 iamserviceaccount 를 다시 생성했다.
+<br/>
+<br/>
+
+### IAM 정책 json 다운로드 & AWS CLI로 정책 생성
+kubernetes 공식 깃헙 계정(github.com/kubernetes-sigs) 내의 리포지터리인 [github.com/kubernetes-sigs/aws-load-balancer-controller](https://github.com/kubernetes-sigs/aws-load-balancer-controller) 에서는 kubernetes 에서 AWS 환경에 맞도록 Ingress Controller 를 설치하기 위해 aws-load-balancer-controller 를 구성할 때 필요한 IAM Policy 부터 여러가지 다양한 AWS 환경 내에서의 리소스 Json 및 예제 등을 제공하고 있다.
+<br/>
+아래 `iam_policy.json` 은 위에서 공식 깃헙 계정 내의 https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/main/docs/install/iam_policy.json 에서 제공하는 IAM 정책 json 파일이다. 
+<br/>
+Cloud9 에서 다 귀찮다 싶으면 [raw 파일 링크](https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json) 을 통해 curl 로 다운받아서 사용하면 된다.
+<br/>
+<br/>
+```json filename="iam-policy" {3} copy
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateServiceLinkedRole"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": "elasticloadbalancing.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeAccountAttributes",
+                "ec2:DescribeAddresses",
+                "ec2:DescribeAvailabilityZones",
+                "ec2:DescribeInternetGateways",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeVpcPeeringConnections",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeInstances",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DescribeTags",
+                "ec2:GetCoipPoolUsage",
+                "ec2:DescribeCoipPools",
+                "elasticloadbalancing:DescribeLoadBalancers",
+                "elasticloadbalancing:DescribeLoadBalancerAttributes",
+                "elasticloadbalancing:DescribeListeners",
+                "elasticloadbalancing:DescribeListenerCertificates",
+                "elasticloadbalancing:DescribeSSLPolicies",
+                "elasticloadbalancing:DescribeRules",
+                "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:DescribeTargetGroupAttributes",
+                "elasticloadbalancing:DescribeTargetHealth",
+                "elasticloadbalancing:DescribeTags"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "cognito-idp:DescribeUserPoolClient",
+                "acm:ListCertificates",
+                "acm:DescribeCertificate",
+                "iam:ListServerCertificates",
+                "iam:GetServerCertificate",
+                "waf-regional:GetWebACL",
+                "waf-regional:GetWebACLForResource",
+                "waf-regional:AssociateWebACL",
+                "waf-regional:DisassociateWebACL",
+                "wafv2:GetWebACL",
+                "wafv2:GetWebACLForResource",
+                "wafv2:AssociateWebACL",
+                "wafv2:DisassociateWebACL",
+                "shield:GetSubscriptionState",
+                "shield:DescribeProtection",
+                "shield:CreateProtection",
+                "shield:DeleteProtection"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupIngress"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateSecurityGroup"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateTags"
+            ],
+            "Resource": "arn:aws:ec2:*:*:security-group/*",
+            "Condition": {
+                "StringEquals": {
+                    "ec2:CreateAction": "CreateSecurityGroup"
+                },
+                "Null": {
+                    "aws:RequestTag/elbv2.k8s.aws/cluster": "false"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateTags",
+                "ec2:DeleteTags"
+            ],
+            "Resource": "arn:aws:ec2:*:*:security-group/*",
+            "Condition": {
+                "Null": {
+                    "aws:RequestTag/elbv2.k8s.aws/cluster": "true",
+                    "aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:DeleteSecurityGroup"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "Null": {
+                    "aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:CreateLoadBalancer",
+                "elasticloadbalancing:CreateTargetGroup"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "Null": {
+                    "aws:RequestTag/elbv2.k8s.aws/cluster": "false"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:CreateListener",
+                "elasticloadbalancing:DeleteListener",
+                "elasticloadbalancing:CreateRule",
+                "elasticloadbalancing:DeleteRule"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:AddTags",
+                "elasticloadbalancing:RemoveTags"
+            ],
+            "Resource": [
+                "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
+                "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
+                "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
+            ],
+            "Condition": {
+                "Null": {
+                    "aws:RequestTag/elbv2.k8s.aws/cluster": "true",
+                    "aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:AddTags",
+                "elasticloadbalancing:RemoveTags"
+            ],
+            "Resource": [
+                "arn:aws:elasticloadbalancing:*:*:listener/net/*/*/*",
+                "arn:aws:elasticloadbalancing:*:*:listener/app/*/*/*",
+                "arn:aws:elasticloadbalancing:*:*:listener-rule/net/*/*/*",
+                "arn:aws:elasticloadbalancing:*:*:listener-rule/app/*/*/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:ModifyLoadBalancerAttributes",
+                "elasticloadbalancing:SetIpAddressType",
+                "elasticloadbalancing:SetSecurityGroups",
+                "elasticloadbalancing:SetSubnets",
+                "elasticloadbalancing:DeleteLoadBalancer",
+                "elasticloadbalancing:ModifyTargetGroup",
+                "elasticloadbalancing:ModifyTargetGroupAttributes",
+                "elasticloadbalancing:DeleteTargetGroup"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "Null": {
+                    "aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:AddTags"
+            ],
+            "Resource": [
+                "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
+                "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
+                "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "elasticloadbalancing:CreateAction": [
+                        "CreateTargetGroup",
+                        "CreateLoadBalancer"
+                    ]
+                },
+                "Null": {
+                    "aws:RequestTag/elbv2.k8s.aws/cluster": "false"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:RegisterTargets",
+                "elasticloadbalancing:DeregisterTargets"
+            ],
+            "Resource": "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:SetWebAcl",
+                "elasticloadbalancing:ModifyListener",
+                "elasticloadbalancing:AddListenerCertificates",
+                "elasticloadbalancing:RemoveListenerCertificates",
+                "elasticloadbalancing:ModifyRule"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+<br/>
+
+이번 실습에서는 curl 을 통해서 IAM 정책을 적용하기로 했다.<br/>
+메인 브랜치 IAM Policy json 링크<br/>
+- https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+
+<br/>
+
+v2.5.4 브랜치 IAM Policy json 링크<br/>
+- https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
+
+<br/>
+
+나는 메인 브랜치의 IAM Policy Json 을 사용하기로 했다.
+```bash filename="terminal" {3} copy
+## iam policy 다운로드
+$ curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  8386  100  8386    0     0  28407      0 --:--:-- --:--:-- --:--:-- 28523
+
+## 다운로드 받은 json 파일인 iam_policy.json 을 이용해서 IAM Policy 생성 
+$ aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+
+실행결과
+{
+    "Policy": {
+        "PolicyName": "AWSLoadBalancerControllerIAMPolicy",
+        "PolicyId": "ANPARSRDIIP7ERQMT63QE",
+        "Arn": "arn:aws:iam::{IAM 계정 ID}:policy/AWSLoadBalancerControllerIAMPolicy",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2023-12-24T12:55:42+00:00",
+        "UpdateDate": "2023-12-24T12:55:42+00:00"
+    }
+}
+
+```
+<br/>
+
+### Service Account 생성
+```bash filename="terminal" {3} copy
+$ eksctl create iamserviceaccount \
+> --cluster=gitops-study-k8scluster \
+> --namespace=kube-system \
+> --name=aws-load-balancer-controller \
+> --role-name AmazoneEKSLoadBalancerControllerRole \
+> --attach-policy-arn=arn:aws:iam::{IAM 계정 ID}:policy/AWSLoadBalancerControllerIAMPolicy \
+> --approve
+```
+<br/>
+
+결과를 확인해본다.
+```bash filename="terminal" {3} copy
+$ aws sts get-caller-identity
+{
+    "UserId": "AIDARSRDIIP7JGE4QNBL7",
+    "Account": "108521866238",
+    "Arn": "arn:aws:iam::108521866238:user/gitops-study-argocd"
+}
+```
+<br/>
+
+생성된 service account 를 확인해본다.
+```bash filename="terminal" {3} copy
+$ kubectl describe sa aws-load-balancer-controller -n kube-system
+Name:                aws-load-balancer-controller
+Namespace:           kube-system
+Labels:              app.kubernetes.io/managed-by=eksctl
+Annotations:         eks.amazonaws.com/role-arn: arn:aws:iam::108521866238:role/AmazoneEKSLoadBalancerControllerRole
+Image pull secrets:  <none>
+Mountable secrets:   <none>
+Tokens:              <none>
+Events:              <none>
+
+## 또는 아래와 같이 serviceaccount 를 모두 적어주어도 된다.
+$ kubectl describe serviceaccount aws-load-balancer-controller -n kube-system                                         
+Name:                aws-load-balancer-controller
+Namespace:           kube-system
+Labels:              app.kubernetes.io/managed-by=eksctl
+Annotations:         eks.amazonaws.com/role-arn: arn:aws:iam::108521866238:role/AmazoneEKSLoadBalancerControllerRole
+Image pull secrets:  <none>
+Mountable secrets:   <none>
+Tokens:              <none>
+Events:              <none>
+```
