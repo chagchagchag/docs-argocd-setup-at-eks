@@ -2,7 +2,7 @@ import React from 'react'
 import { DocsThemeConfig } from 'nextra-theme-docs'
 
 const config: DocsThemeConfig = {
-  logo: <span>My Project</span>,
+  logo: <span>ArgoCD를 EKS설치하는 과정들</span>,
   project: {
     link: 'https://github.com/chagchagchag/docs-argocd-setup-at-eks',
   },
