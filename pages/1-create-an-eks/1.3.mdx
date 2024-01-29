@@ -4,13 +4,13 @@
   
 
 ## 노드그룹 삭제
-```bash
+```bash filename="terminal" {3} copy
 eksctl delete nodegroup --cluster=gitops-study-k8scluster --name=ng-99fc00b4
 ```
   
 
 ## 노드 조회 
-```bash
+```bash filename="terminal" {3} copy
 kubectl get no
 NAME                                                 STATUS                        ROLES    AGE   VERSION
 ip-192-168-105-26.ap-northeast-2.compute.internal    Ready                         <none>   11m   v1.27.7-eks-e71965b
@@ -21,4 +21,4 @@ ip-192-168-38-181.ap-northeast-2.compute.internal    NotReady,SchedulingDisabled
   
 
 새로 생성 중인 노드를 확인해보면 아래와 같습니다.
-<img src="https://raw.githubusercontent.com/chagchagchag/eks-k8s-docker-study-archive/main/eks-by-argocd/img/CLUSTER-SETUP-3-EKSCTL-MANAGED-NODEGROUP-DELETE/1.png"/>
+<Image src="https://raw.githubusercontent.com/chagchagchag/eks-k8s-docker-study-archive/main/eks-by-argocd/img/CLUSTER-SETUP-3-EKSCTL-MANAGED-NODEGROUP-DELETE/1.png"/>
