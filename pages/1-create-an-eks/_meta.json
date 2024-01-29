@@ -1,4 +1,5 @@
 {
+    "1.0": "0. 소개",
     "1.1": "1. eksctl 을 사용해 EKS Cluster 생성",
     "1.2": "2. eksctl 을 사용해 EKS Nodegroup 생성",
     "1.3": "3. Managed Nodegroup 삭제",
