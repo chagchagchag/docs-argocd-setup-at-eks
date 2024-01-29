@@ -1,13 +1,13 @@
 ## 3. Managed Nodegroup 삭제
 
-이미 구동중이던 Managed Node Group 을 삭제하는 것은 아래의 명령어를 수행하면 됩니다.  
-  
+이미 구동중이던 Managed Node Group 을 삭제하는 것은 아래의 명령어를 수행하면 됩니다.<br/>
+<br/>
 
 ## 노드그룹 삭제
 ```bash filename="terminal" {3} copy
 eksctl delete nodegroup --cluster=gitops-study-k8scluster --name=ng-99fc00b4
 ```
-  
+<br/>
 
 ## 노드 조회 
 ```bash filename="terminal" {3} copy
@@ -18,7 +18,7 @@ ip-192-168-164-248.ap-northeast-2.compute.internal   Ready                      
 ip-192-168-28-115.ap-northeast-2.compute.internal    Ready,SchedulingDisabled      <none>   67m   v1.27.7-eks-e71965b
 ip-192-168-38-181.ap-northeast-2.compute.internal    NotReady,SchedulingDisabled   <none>   67m   v1.27.7-eks-e71965b
 ```
-  
+<br/>
 
-새로 생성 중인 노드를 확인해보면 아래와 같습니다.
-<Image src="https://raw.githubusercontent.com/chagchagchag/eks-k8s-docker-study-archive/main/eks-by-argocd/img/CLUSTER-SETUP-3-EKSCTL-MANAGED-NODEGROUP-DELETE/1.png"/>
+새로 생성 중인 노드를 확인해보면 아래와 같습니다.<br/>
+![](https://raw.githubusercontent.com/chagchagchag/eks-k8s-docker-study-archive/main/eks-by-argocd/img/CLUSTER-SETUP-3-EKSCTL-MANAGED-NODEGROUP-DELETE/1.png)
