@@ -5,13 +5,13 @@
 
 ## 노드그룹 삭제
 ```bash
-$ eksctl delete nodegroup --cluster=gitops-study-k8scluster --name=ng-99fc00b4
+eksctl delete nodegroup --cluster=gitops-study-k8scluster --name=ng-99fc00b4
 ```
   
 
 ## 노드 조회 
 ```bash
-$ kubectl get no
+kubectl get no
 NAME                                                 STATUS                        ROLES    AGE   VERSION
 ip-192-168-105-26.ap-northeast-2.compute.internal    Ready                         <none>   11m   v1.27.7-eks-e71965b
 ip-192-168-164-248.ap-northeast-2.compute.internal   Ready                         <none>   11m   v1.27.7-eks-e71965b
